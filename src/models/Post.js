@@ -47,4 +47,14 @@ postSchema.index({
   content: "text",
 });
 
+// Relationship with comments
+postSchema.virtual("commentList", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "post",
+});
+
+// Enable virtuals when converting to JSON
+postSchema.set("toJSON", { virtuals: true });
+
 module.exports = mongoose.model("Post", postSchema);

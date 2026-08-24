@@ -1,32 +1,23 @@
 const express = require("express");
-
-const {
-  getAllPosts,
-  getPostById,
-  createPost,
-  updatePost,
-  deletePost,
-  likePost,
-} = require("../controllers/postsController");
-
 const router = express.Router();
 
-// Get all posts
-router.get("/", getAllPosts);
+const postsController = require("../controllers/postsController");
+const commentsController = require("../controllers/commentsController");
 
-// Get one post
-router.get("/:id", getPostById);
+// Post routes
+router.get("/", postsController.getAllPosts);
+router.get("/:id", postsController.getPostById);
+router.post("/", postsController.createPost);
+router.put("/:id", postsController.updatePost);
+router.delete("/:id", postsController.deletePost);
+router.post("/:id/like", postsController.likePost);
 
-// Create a post
-router.post("/", createPost);
-
-// Update a post
-router.put("/:id", updatePost);
-
-// Delete a post
-router.delete("/:id", deletePost);
-
-// Like a post
-router.post("/:id/like", likePost);
+// Comment routes
+router.get("/:postId/comments", commentsController.getComments);
+router.post("/:postId/comments", commentsController.createComment);
+router.delete(
+  "/:postId/comments/:commentId",
+  commentsController.deleteComment
+);
 
 module.exports = router;
