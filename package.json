@@ -17,9 +17,11 @@
   },
   "homepage": "https://github.com/wambugujoseph467-dot/iyf-s11-week-11-wambugujoseph467-dot#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.3"
   }
 }
