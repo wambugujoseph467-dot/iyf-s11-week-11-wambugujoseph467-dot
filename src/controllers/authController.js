@@ -6,7 +6,9 @@ const generateToken = (userId) => {
   return jwt.sign(
     { id: userId },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    }
   );
 };
 
@@ -15,6 +17,37 @@ const register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
+    // Required fields
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        error: "Username, email and password are required",
+      });
+    }
+
+    // Validate username length
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({
+        error: "Username must be between 3 and 30 characters",
+      });
+    }
+
+    // Validate email
+    const emailRegex = /^\S+@\S+\.\S+$/;
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        error: "Please provide a valid email address",
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: "Password must be at least 6 characters long",
+      });
+    }
+
+    // Check if user exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
@@ -25,14 +58,17 @@ const register = async (req, res, next) => {
       });
     }
 
+    // Create user
     const user = new User({
       username,
       email,
       password,
     });
 
+    // Password is automatically hashed by User model
     await user.save();
 
+    // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -46,8 +82,13 @@ const register = async (req, res, next) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((e) => e.message);
-      return res.status(400).json({ errors: messages });
+      const messages = Object.values(error.errors).map(
+        (e) => e.message
+      );
+
+      return res.status(400).json({
+        errors: messages,
+      });
     }
 
     next(error);
@@ -59,20 +100,33 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    // Validate required fields
     if (!email || !password) {
       return res.status(400).json({
-        error: "Please provide email and password",
+        error: "Email and password are required",
       });
     }
 
+    // Validate email format
+    const emailRegex = /^\S+@\S+\.\S+$/;
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        error: "Please provide a valid email address",
+      });
+    }
+
+    // Find user and include password
     const user = await User.findOne({ email }).select("+password");
 
+    // Generic error - don't reveal which field is incorrect
     if (!user) {
       return res.status(401).json({
         error: "Invalid credentials",
       });
     }
 
+    // Check password
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
@@ -81,6 +135,7 @@ const login = async (req, res, next) => {
       });
     }
 
+    // Generate token
     const token = generateToken(user._id);
 
     res.json({
@@ -101,6 +156,12 @@ const login = async (req, res, next) => {
 const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
 
     res.json({
       id: user._id,
