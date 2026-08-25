@@ -15,9 +15,9 @@ const postSchema = new mongoose.Schema(
     },
 
     author: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      trim: true,
     },
 
     tags: {

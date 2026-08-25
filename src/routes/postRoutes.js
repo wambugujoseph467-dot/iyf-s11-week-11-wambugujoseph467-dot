@@ -3,20 +3,29 @@ const router = express.Router();
 
 const postsController = require("../controllers/postsController");
 const commentsController = require("../controllers/commentsController");
+const { protect } = require("../middleware/auth");
 
-// Post routes
+// Public post routes
 router.get("/", postsController.getAllPosts);
 router.get("/:id", postsController.getPostById);
-router.post("/", postsController.createPost);
-router.put("/:id", postsController.updatePost);
-router.delete("/:id", postsController.deletePost);
-router.post("/:id/like", postsController.likePost);
+
+// Protected post routes
+router.post("/", protect, postsController.createPost);
+router.put("/:id", protect, postsController.updatePost);
+router.delete("/:id", protect, postsController.deletePost);
+
+router.post("/:id/like", protect, postsController.likePost);
 
 // Comment routes
 router.get("/:postId/comments", commentsController.getComments);
-router.post("/:postId/comments", commentsController.createComment);
+router.post(
+  "/:postId/comments",
+  protect,
+  commentsController.createComment
+);
 router.delete(
   "/:postId/comments/:commentId",
+  protect,
   commentsController.deleteComment
 );
 
